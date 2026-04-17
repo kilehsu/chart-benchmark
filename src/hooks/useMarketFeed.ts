@@ -2,11 +2,12 @@ import { useRef, useEffect, useState } from "react";
 import { type WorkerMessage } from "../types/workers";
 import { type ScenarioConfig } from "../types/scenarios";
 import MarketFeedWorker from "../workers/marketFeed.worker.ts?worker";
-import { type Candle } from "../types/candles";
+import { type Candle, type CandleEvent } from "../types/candles";
 
 export function useMarketFeed() {
   const worker = useRef<InstanceType<typeof MarketFeedWorker> | null>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
+  const [lastEvent, setLastEvent] = useState<CandleEvent | null>(null);
 
   function start(config: ScenarioConfig) {
     if (worker.current === null) {
@@ -53,6 +54,7 @@ export function useMarketFeed() {
           } else {
             setCandles((prev) => [...prev.slice(0, -1), msg.event.candle]);
           }
+          setLastEvent(msg.event);
           break;
         case "error":
           break;
@@ -66,5 +68,5 @@ export function useMarketFeed() {
     };
   }, []);
 
-  return { candles, start, pause, resume, reset };
+  return { candles, lastEvent, start, pause, resume, reset };
 }

@@ -3,12 +3,14 @@ import { useMarketFeed } from "./hooks/useMarketFeed";
 import { DEFAULT_CONFIG } from "./lib/marketGenerator";
 import { fromCents } from "./types/candles";
 import type { ScenarioConfig } from "./types/scenarios";
+import { RechartsAdapter } from "./adapters/RechartsAdapter";
+import { LightweightAdapter } from "./adapters/LightweightAdapter";
 
 const BAR_OPTIONS = [1000, 5000, 15_000, 30_000, 60_000];
-const TICK_OPTIONS = [100, 250, 500, 1000];
+const TICK_OPTIONS = [16, 100, 250, 500, 1000];
 
 export default function App() {
-  const { candles, start, pause, resume, reset } = useMarketFeed();
+  const { candles, lastEvent, start, pause, resume, reset } = useMarketFeed();
   const [config, setConfig] = useState<ScenarioConfig>({
     ...DEFAULT_CONFIG,
     tickRateMs: 1000,
@@ -104,7 +106,9 @@ export default function App() {
       <button onClick={() => pause()}>Pause</button>
       <button onClick={() => resume()}>Resume</button>
       <button onClick={() => reset()}>Reset</button>
-      {candles.map((candle) => (
+      <RechartsAdapter candles={candles} event={null} />
+      <LightweightAdapter candles={candles} event={lastEvent} />
+      {/* {candles.map((candle) => (
         <div key={candle.time}>
           <p>{fromCents(candle.close)}</p>
           <p>{fromCents(candle.high)}</p>
@@ -113,7 +117,7 @@ export default function App() {
           <p>{candle.time}</p>
           <p>{candle.volume}</p>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }
