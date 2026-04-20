@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMarketFeed } from "./hooks/useMarketFeed";
+import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
 import { DEFAULT_CONFIG } from "./lib/marketGenerator";
-import { fromCents } from "./types/candles";
 import type { ScenarioConfig } from "./types/scenarios";
 import { RechartsAdapter } from "./adapters/RechartsAdapter";
 import { LightweightAdapter } from "./adapters/LightweightAdapter";
@@ -11,6 +11,7 @@ const TICK_OPTIONS = [16, 100, 250, 500, 1000];
 
 export default function App() {
   const { candles, lastEvent, start, pause, resume, reset } = useMarketFeed();
+  const { metrics } = usePerformanceMonitor();
   const [config, setConfig] = useState<ScenarioConfig>({
     ...DEFAULT_CONFIG,
     tickRateMs: 1000,
@@ -106,7 +107,11 @@ export default function App() {
       <button onClick={() => pause()}>Pause</button>
       <button onClick={() => resume()}>Resume</button>
       <button onClick={() => reset()}>Reset</button>
-      <RechartsAdapter candles={candles} event={null} />
+      <p>FPS: {metrics.fps}</p>
+      <p>p95 frame: {metrics.p95FrameMs.toFixed(2)}ms</p>
+      <p>Long frames: {metrics.totalLongFrames}</p>
+      <p>Refresh rate: {metrics.hz}</p>
+      {/* <RechartsAdapter candles={candles} event={null} /> */}
       <LightweightAdapter candles={candles} event={lastEvent} />
       {/* {candles.map((candle) => (
         <div key={candle.time}>

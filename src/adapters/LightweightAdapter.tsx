@@ -8,7 +8,6 @@ import {
 } from "lightweight-charts";
 import { type Candle, fromCents } from "../types/candles";
 import { type ChartAdapterProps } from "../types/ChartAdapter";
-
 const toChartCandle = (c: Candle) => ({
   time: (c.time / 1000) as UTCTimestamp,
   open: fromCents(c.open),
