@@ -1,17 +1,24 @@
 import { useState } from "react";
 import { useMarketFeed } from "./hooks/useMarketFeed";
-import { usePerformanceMonitor } from "./hooks/usePerformanceMonitor";
+import { PerformanceMonitor } from "./hooks/usePerformanceMonitor";
 import { DEFAULT_CONFIG } from "./lib/marketGenerator";
 import type { ScenarioConfig } from "./types/scenarios";
 import { RechartsAdapter } from "./adapters/RechartsAdapter";
 import { LightweightAdapter } from "./adapters/LightweightAdapter";
+import { type ChartAdapterComponent } from "./types/ChartAdapter";
+import { type Adapter } from "./types/RunResult";
 
 const BAR_OPTIONS = [1000, 5000, 15_000, 30_000, 60_000];
 const TICK_OPTIONS = [16, 100, 250, 500, 1000];
+const ADAPTERS: Record<Adapter, ChartAdapterComponent> = {
+  lightweight: LightweightAdapter,
+  recharts: RechartsAdapter,
+};
+const CHART_OPTIONS = Object.keys(ADAPTERS) as Adapter[];
 
 export default function App() {
+  const [chartOption, setChartOption] = useState<Adapter>("lightweight");
   const { candles, lastEvent, start, pause, resume, reset } = useMarketFeed();
-  const { metrics } = usePerformanceMonitor();
   const [config, setConfig] = useState<ScenarioConfig>({
     ...DEFAULT_CONFIG,
     tickRateMs: 1000,
@@ -31,8 +38,24 @@ export default function App() {
   const handleSeedChange = (value: number) => {
     setConfig((prev) => ({ ...prev, seed: value }));
   };
+
+  const Adapter = ADAPTERS[chartOption];
   return (
     <div>
+      <label>
+        Select chart type:
+        <select
+          name="chartType"
+          value={chartOption}
+          onChange={(e) => {
+            setChartOption(e.target.value as Adapter);
+          }}
+        >
+          {CHART_OPTIONS.map((option) => (
+            <option key={option}>{option}</option>
+          ))}
+        </select>
+      </label>
       <p>
         Bar Interval Options (sec)
         {BAR_OPTIONS.map((option) => (
@@ -107,22 +130,8 @@ export default function App() {
       <button onClick={() => pause()}>Pause</button>
       <button onClick={() => resume()}>Resume</button>
       <button onClick={() => reset()}>Reset</button>
-      <p>FPS: {metrics.fps}</p>
-      <p>p95 frame: {metrics.p95FrameMs.toFixed(2)}ms</p>
-      <p>Long frames: {metrics.totalLongFrames}</p>
-      <p>Refresh rate: {metrics.hz}</p>
-      {/* <RechartsAdapter candles={candles} event={null} /> */}
-      <LightweightAdapter candles={candles} event={lastEvent} />
-      {/* {candles.map((candle) => (
-        <div key={candle.time}>
-          <p>{fromCents(candle.close)}</p>
-          <p>{fromCents(candle.high)}</p>
-          <p>{fromCents(candle.low)}</p>
-          <p>{fromCents(candle.open)}</p>
-          <p>{candle.time}</p>
-          <p>{candle.volume}</p>
-        </div>
-      ))} */}
+      <PerformanceMonitor />
+      <Adapter candles={candles} event={lastEvent} />
     </div>
   );
 }
