@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { useMarketFeed } from "./hooks/useMarketFeed";
-import { PerformanceMonitor } from "./hooks/usePerformanceMonitor";
 import { DEFAULT_CONFIG } from "./lib/marketGenerator";
 import type { ScenarioConfig } from "./types/scenarios";
 import { RechartsAdapter } from "./adapters/RechartsAdapter";
 import { LightweightAdapter } from "./adapters/LightweightAdapter";
 import { type ChartAdapterComponent } from "./types/ChartAdapter";
 import { type Adapter } from "./types/RunResult";
+import { PerformanceMonitor } from "./components/PerformanceMonitor";
+import { type PerformanceMetricsConfig } from "./types/PerformanceMetrics";
 
 const BAR_OPTIONS = [1000, 5000, 15_000, 30_000, 60_000];
+const DEFAULT_PERF_CONFIG: PerformanceMetricsConfig = {
+  reservoirSize: 1000,
+  percentiles: [95, 99],
+};
 const TICK_OPTIONS = [16, 100, 250, 500, 1000];
 const ADAPTERS: Record<Adapter, ChartAdapterComponent> = {
   lightweight: LightweightAdapter,
@@ -130,8 +135,10 @@ export default function App() {
       <button onClick={() => pause()}>Pause</button>
       <button onClick={() => resume()}>Resume</button>
       <button onClick={() => reset()}>Reset</button>
-      <PerformanceMonitor />
-      <Adapter candles={candles} event={lastEvent} />
+      <div>
+        <PerformanceMonitor {...DEFAULT_PERF_CONFIG} />
+        <Adapter candles={candles} event={lastEvent} />
+      </div>
     </div>
   );
 }
